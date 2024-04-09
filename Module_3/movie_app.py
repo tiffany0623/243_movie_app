@@ -397,7 +397,7 @@ def display_movie_details(movie):
     
     with st.container():
         if poster_url:
-            st.image(poster_url, width=180, caption=movie_name)
+            st.image(poster_url, width=180)
         
         if st.button(f"⭐ Add to Watchlist", key=f"add_{movie_id}"):
             movie_info = {"title": movie_name, "imdbUrl": imdb_link}
