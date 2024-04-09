@@ -203,6 +203,16 @@ selected_movies = movies_df[movies_df['movieId'].isin(selected_movie_ids)]
 if 'selected_movies' not in st.session_state:
     st.session_state['selected_movies'] = selected_movies
 
+# Initialize the watchlist in the session state if it doesn't exist
+if 'my_watchlist' not in st.session_state:
+    st.session_state['my_watchlist'] = []
+
+# Sidebar for the watchlist
+st.sidebar.title("My Watchlist")
+watchlist_area = st.sidebar.empty()  # This area will be updated with the watchlist
+
+if 'rec_movies' not in st.session_state:
+    st.session_state['rec_movies'] = pd.DataFrame()
 
 # Assuming initialization and setup are done earlier
 selectbox_width = 180  # Adjust the width of the selectbox as needed
@@ -320,19 +330,52 @@ def svd_pred(user_interactions_df):
 
     return cf_preds_df
 
+def display_movies(rec_movies):
+    n_movies_to_display_per_row = 5
+    for row in range(2):  # Create rows of movies
+        columns = st.columns(n_movies_to_display_per_row)
+        for i in range(n_movies_to_display_per_row):
+            movie_index = row * n_movies_to_display_per_row + i
+            if movie_index >= len(rec_movies):
+                break
+            movie = rec_movies.iloc[movie_index]
+            with columns[i]:
+                display_movie_details(movie)
+
+# Function to display movie details and handle the addition to the watchlist
+def display_movie_details(movie):
+    movie_name = movie['title']
+    movie_id = movie['movieId']
+    poster_url = movie.get('imageURL', '')
+    if poster_url:
+        st.image(poster_url, caption=movie_name, width=180)
+
+    if st.button("⭐", key=f"add_{movie_id}"):
+        if movie_name not in st.session_state['my_watchlist']:
+            updated_watchlist = st.session_state['my_watchlist'] + [movie_name]
+            st.session_state['my_watchlist'] = updated_watchlist  # Update the session state list
+            update_watchlist_area()  # Update the display
+
+
+def update_watchlist_area():
+    watchlist_area.empty()  # Clear the previous content
+    watchlist_area.markdown("### My Watchlist")
+    # Create a string that contains all watchlist items, then display it
+    watchlist_content = "\n".join(f"{idx}. {movie}" for idx, movie in enumerate(st.session_state['my_watchlist'], 1))
+    watchlist_area.markdown(watchlist_content)
 
 # Button to trigger recommendations
 if st.button("Recommend"):
     # Check if the user has rated at least two movie
-    if  len(user_ratings.values()) == 0:
+    if  len(user_ratings.values()) < 2:
         st.markdown("<p style='color:#F4BC07; font-size: 18px;'><b>Please rate at least two movie before proceeding.</b></p>",
                     unsafe_allow_html=True)
     else:
+
         progress_bar()
         #st.write("<span style='color: #FFBF00;font-size: 18px;'><b>Personalizing your Recommendations...</b></span>", unsafe_allow_html=True)
 
-        # Every user is first time user
-        first_time_user = True
+
         new_user_df = create_ratings_df(user_ratings, user_ID=987654321)
 
         #CB
@@ -354,29 +397,16 @@ if st.button("Recommend"):
 
         movei_rec_id = Hybrid_recommend_df['movieId'].values
         rec_movies = movies_df[movies_df['movieId'].isin(movei_rec_id)]
+        st.session_state['rec_movies'] = rec_movies  # Store the recommendations
 
-        if not rec_movies.empty:
-            n_movies_to_display_per_row = 5
-            image_width = 180  # Adjust as needed
+rec_movies = st.session_state.get('rec_movies', pd.DataFrame())
 
-            for row in range(2):  # For creating two rows
-                columns = st.columns(n_movies_to_display_per_row)  # Creates 5 columns for each row
+if not rec_movies.empty:
+    display_movies(rec_movies)
 
-                for i in range(n_movies_to_display_per_row):
-                    # Calculate movie index based on row and column
-                    movie_index = row * n_movies_to_display_per_row + i
+#else:
+    #st.write("No recommendations available.")
 
-                    if movie_index >= len(rec_movies):
-                        break  # Exit if no more movies to display
-
-                    movie = rec_movies.iloc[movie_index]
-                    movie_name = movie['title']
-                    poster_url = movie['imageURL']
-
-                    with columns[i]:  # Use columns within the current row
-                        if poster_url:  # Check if poster_url is not empty
-                            st.image(poster_url, caption=movie_name, width=image_width)
-        else:
-            st.markdown(
-                "<p style='color:#FFBF00; font-size: 18px;'><b>Sorry, we couldn't find any recommendations for you.</b></p>",
-                unsafe_allow_html=True)
+#else:
+    #st.markdown("<p style='color:#FFBF00; font-size: 18px;'><b>Sorry, we couldn't find any recommendations for you.</b></p>",
+               #unsafe_allow_html=True)
