@@ -81,18 +81,16 @@ def load_data_via_requests(url):
         return pd.DataFrame()
 
 
-def main():
-    global rating
-    global movies_df
 
-    url_final = 'https://drive.google.com/uc?export=download&id=1LwQ0qtjIvIRKSOjuzTYXGpXoF1mOv9Xp'
-    url_rating = 'https://drive.google.com/uc?export=download&id=17QweXIk6u8KHEnA6pqxdlcwXLuybaZyE'
 
-    movies_df = load_data_via_requests(url_final)
-    rating = load_data_via_requests(url_rating)
+#Add a new column to your movies_df for IMDb URLs
+# Load your datasets (ensure this happens at the right place in your script)
+movies_df = load_data_via_requests('https://drive.google.com/uc?export=download&id=1LwQ0qtjIvIRKSOjuzTYXGpXoF1mOv9Xp')
+rating = load_data_via_requests('https://drive.google.com/uc?export=download&id=17QweXIk6u8KHEnA6pqxdlcwXLuybaZyE')
 
-if __name__ == "__main__":
-    main()
+# Add the 'imdbUrl' column
+movies_df['imdbUrl'] = 'https://www.imdb.com/title/tt' + movies_df['imdbId'].apply(lambda x: f"{int(x):07d}") + '/'
+
 
 ratings_with_titles_df = rating.merge(movies_df, on='movieId', how='left')
 # Custom UI
@@ -199,13 +197,15 @@ selected_movie_ids = random.sample(popular, n_random_movies)
 selected_movies = movies_df[movies_df['movieId'].isin(selected_movie_ids)]
 
 
-# Create a session state to store selected movies and posters (showing only top 1000 movies to rate)
-if 'selected_movies' not in st.session_state:
-    st.session_state['selected_movies'] = selected_movies
 
 # Initialize the watchlist in the session state if it doesn't exist
 if 'my_watchlist' not in st.session_state:
     st.session_state['my_watchlist'] = []
+
+# Create a session state to store selected movies and posters (showing only top 1000 movies to rate)
+if 'selected_movies' not in st.session_state:
+    st.session_state['selected_movies'] = selected_movies
+
 
 # Sidebar for the watchlist
 st.sidebar.title("My Watchlist")
@@ -237,14 +237,17 @@ for row in range(2):  # For creating two rows
         poster_url = movie['imageURL']
 
         with columns[i]:  # Use columns within the current row
+
             st.markdown(f"<div class='movie-container'>", unsafe_allow_html=True)
             if poster_url is not None:  # Check if poster_url is not empty
                 st.image(poster_url, caption=movie_name, width=image_width)
-
+            
             # Rating logic
             rating = st.selectbox("", ("Rate the movie","0", "1", "2", "3", "4", "5"), key=f"{movie_name}_rating")
             if rating != 'Rate the movie':
                 user_ratings[movie_id] = rating
+
+            
         st.markdown("</div>", unsafe_allow_html=True)
     
 
@@ -288,13 +291,13 @@ def progress_bar():
     progress_text = st.markdown("<p class='custom-text'>Personalizing your Recommendations...</p>", unsafe_allow_html=True)
     my_bar = st.progress(0)
 
-    for percent_complete in range(6):
+    for percent_complete in range(101):
         time.sleep(0.1)
         my_bar.progress(percent_complete)
     
-    pass
-    #progress_text.empty()
-    #my_bar.empty()
+    # pass
+    progress_text.empty()
+    my_bar.empty()
 
 def create_ratings_df(user_ratings, user_ID=987654321):
     # Prepare the data for the new DataFrame
@@ -342,27 +345,41 @@ def display_movies(rec_movies):
             with columns[i]:
                 display_movie_details(movie)
 
-# Function to display movie details and handle the addition to the watchlist
+# Add watch list and imdb link
 def display_movie_details(movie):
-    movie_name = movie['title']
     movie_id = movie['movieId']
+    movie_name = movie['title']
     poster_url = movie.get('imageURL', '')
-    if poster_url:
-        st.image(poster_url, caption=movie_name, width=180)
+    imdb_link = movie['imdbUrl']  # Ensure the 'imdbUrl' column exists in your DataFrame
+    
+    with st.container():
+        if poster_url:
+            st.image(poster_url, width=180)
+        
+        if st.button(f"⭐ Add to Watchlist", key=f"add_{movie_id}"):
+            if movie_name not in st.session_state['my_watchlist']:
+                updated_watchlist = st.session_state['my_watchlist'] + [movie_name] # Store movie ID
+                st.session_state['my_watchlist'] = updated_watchlist
+                update_watchlist_area()  # Refresh the watchlist display
+                
+        # IMDb link
+        st.markdown(f"[{movie_name}]({imdb_link})", unsafe_allow_html=True)
 
-    if st.button("⭐", key=f"add_{movie_id}"):
-        if movie_name not in st.session_state['my_watchlist']:
-            updated_watchlist = st.session_state['my_watchlist'] + [movie_name]
-            st.session_state['my_watchlist'] = updated_watchlist  # Update the session state list
-            update_watchlist_area()  # Update the display
 
 
+
+# Update the watchlist
 def update_watchlist_area():
-    watchlist_area.empty()  # Clear the previous content
+    watchlist_area.empty()  # Clear previous content
     watchlist_area.markdown("### My Watchlist")
-    # Create a string that contains all watchlist items, then display it
     watchlist_content = "\n".join(f"{idx}. {movie}" for idx, movie in enumerate(st.session_state['my_watchlist'], 1))
     watchlist_area.markdown(watchlist_content)
+
+#Debug  
+#watchlist_area.write(st.session_state['my_watchlist'])
+
+
+
 
 # Button to trigger recommendations
 if st.button("Recommend"):
@@ -402,6 +419,7 @@ if st.button("Recommend"):
 rec_movies = st.session_state.get('rec_movies', pd.DataFrame())
 
 if not rec_movies.empty:
+    st.write("<span style='color: #660000;font-size: 18px;'><b>Here is your personalized movie list! 🎉🎉</b></span>", unsafe_allow_html=True)
     display_movies(rec_movies)
 
 #else:
