@@ -29,7 +29,7 @@ rating = load_data_via_requests(url_rating)
 
 
     # Now you can access movies_df here or wherever you need it
-tfidf_matrix = load_npz("tfidf_matrix.npz")
+tfidf_matrix = load_npz("./Dataset/tfidf_matrix.npz")
 item_ids = movies_df['movieId'].tolist()
 
 
