@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -16,6 +17,7 @@ st.set_page_config(
     page_title="Popcorn Pick",
     page_icon="🍿️",
     layout="wide",)
+
 
 # Cover
 header_image_url = 'https://drive.google.com/uc?export=view&id=1P7LlemoRhIZE-agKbaTtnrssYACEJ7Ox'
@@ -44,27 +46,56 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # Custom layout to show tagline aligned to the left
 ## Header
+# st.markdown("""
+#     <style>
+#     @import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap');
+
+#     .header-text {
+#         font-weight: bold;
+#         font-size: 120px;
+#         font-family: 'Amatic SC', cursive;
+#         color: #F4BC07;
+#     }
+#     </style>
+#     <h1 class='header-text'>Popcorn Picks 🍿</h1>
+# """, unsafe_allow_html=True)
+
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap');
-
-    .header-text {
+    @keyframes pop {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+    .popcorn-animation {
+        display: inline-block;
+        animation: pop 1s ease infinite;
+    }
+    .animated-title {
         font-weight: bold;
         font-size: 120px;
         font-family: 'Amatic SC', cursive;
         color: #F4BC07;
     }
     </style>
-    <h1 class='header-text'>Popcorn Picks 🍿</h1>
+    <h1 class="animated-title"><span class="popcorn-animation">🍿</span> Popcorn Pick <span class="popcorn-animation">🍿</span></h1>
 """, unsafe_allow_html=True)
 
 ## Introduction
-st.markdown("<p style=#9C9D9F; font-size: 18px; \
-            '>Welcome to Popcorn Picks, the <b>free movie recommendation system</b> \
-            that suggests films based on your interest.</p>",
-            unsafe_allow_html=True)
+st.markdown("""
+    <p style='color: #660000; font-size: 22px;'>
+        Welcome to Popcorn Picks-Your Ultimate Guide to Unforgettable Movie Nights! <br>
+        Dive into a world where films meet your mood, curated just for you.
+             <br>
+             
+    </p>
+""", unsafe_allow_html=True)
 
 st.markdown("---")
+
 
 
 # Import Data
@@ -83,14 +114,13 @@ def load_data_via_requests(url):
 
 
 
-#Add a new column to your movies_df for IMDb URLs
-# Load your datasets (ensure this happens at the right place in your script)
+
+# Load datasets 
 movies_df = load_data_via_requests('https://drive.google.com/uc?export=download&id=1LwQ0qtjIvIRKSOjuzTYXGpXoF1mOv9Xp')
 rating = load_data_via_requests('https://drive.google.com/uc?export=download&id=17QweXIk6u8KHEnA6pqxdlcwXLuybaZyE')
 
-# Add the 'imdbUrl' column
+# Add a new 'imdbUrl' column to movies_df
 movies_df['imdbUrl'] = 'https://www.imdb.com/title/tt' + movies_df['imdbId'].apply(lambda x: f"{int(x):07d}") + '/'
-
 
 ratings_with_titles_df = rating.merge(movies_df, on='movieId', how='left')
 # Custom UI
@@ -100,17 +130,30 @@ st.markdown("""
             Rate Movies
             </h3>""", 
             unsafe_allow_html=True)
+#951512
+st.markdown("""
+    <style>
+    .rating-text {
+        color: #660000;  
+        font-size: 16px;  /* Slightly Larger Font Size */
+        font-family: 'Comic Sans MS', cursive, sans-serif;  /* A Fun Font */
+        background-color: #DB9D35;  /* Dark Background for Contrast */
+        padding: 10px;  /* Some Padding for Aesthetic Spacing */
+        border-radius: 10px;  /* Rounded Corners */
+        border: 2px solid #F4BC07;  
+        margin-bottom: 20px; /* Space below the box */
+    }
+    </style>
+    <p class="rating-text">🌟 Time to be the critic! Rate the movies below 🎬<br>
+    "1": 😡 (That was... unfortunate)<br>
+    "2": 🤨 (Could've been worse)<br>
+    "3": 😌 (It was okay, I guess)<br>
+    "4": 😄 (Really liked it!)<br>
+    "5": 🥳 (Mind. Blown. Loved it!)<br>
+    🤷‍♂️ If you haven't watch this movie, please do not make a selection. <br>
+    🍿️ Need more options? Refresh the page to discover new movies tailored just for you! </p>
+""", unsafe_allow_html=True)
 
-st.markdown("<p style=#9C9D9F; font-size: 18px; \
-            '>Please rate the 10 movies below. <br>\
-            \"0\": ❓ (Have not watched yet) <br>\
-            \"1\": 😠 (1 Star) <br>\
-            \"2\": 😕 (2 Stars) <br>\
-            \"3\": 😐 (3 Stars) <br>\
-            \"4\": 😃 (4 Stars) <br>\
-            \"5\": 😍 (5 Stars)\
-            </p>",
-            unsafe_allow_html=True)
 
 
 # Custom CSS for the UI
@@ -118,8 +161,8 @@ st.markdown(
     """
     <style>
     body {
-        background-color: #eed9c4;  /* White background color */
-        color: #FFD700;            /* Text color (Gold) */
+        background-color: #eed9c4;  /*  background color */
+        color: #FFD700;            /* Text color  */
         font-family: 'Comic Sans MS', cursive;
     }
     .movie-container {
@@ -132,7 +175,7 @@ st.markdown(
         border-radius: 10px;
     }
     .stSelectbox {
-        color: #FFD700;            /* Selectbox text color (Gold) */
+        color: #FFD700;            /* Selectbox text color  */
         background-color: #eed9c4;  /* Selectbox background color */
         height: 40px;
     }
@@ -202,6 +245,10 @@ selected_movies = movies_df[movies_df['movieId'].isin(selected_movie_ids)]
 if 'my_watchlist' not in st.session_state:
     st.session_state['my_watchlist'] = []
 
+
+
+
+
 # Create a session state to store selected movies and posters (showing only top 1000 movies to rate)
 if 'selected_movies' not in st.session_state:
     st.session_state['selected_movies'] = selected_movies
@@ -214,7 +261,6 @@ watchlist_area = st.sidebar.empty()  # This area will be updated with the watchl
 if 'rec_movies' not in st.session_state:
     st.session_state['rec_movies'] = pd.DataFrame()
 
-# Assuming initialization and setup are done earlier
 selectbox_width = 180  # Adjust the width of the selectbox as needed
 image_width = selectbox_width
 user_ratings = {}
@@ -237,17 +283,14 @@ for row in range(2):  # For creating two rows
         poster_url = movie['imageURL']
 
         with columns[i]:  # Use columns within the current row
-
             st.markdown(f"<div class='movie-container'>", unsafe_allow_html=True)
             if poster_url is not None:  # Check if poster_url is not empty
                 st.image(poster_url, caption=movie_name, width=image_width)
-            
+
             # Rating logic
-            rating = st.selectbox("", ("Rate the movie","0", "1", "2", "3", "4", "5"), key=f"{movie_name}_rating")
+            rating = st.selectbox("", ("Rate the movie", "1", "2", "3", "4", "5"), key=f"{movie_name}_rating")
             if rating != 'Rate the movie':
                 user_ratings[movie_id] = rating
-
-            
         st.markdown("</div>", unsafe_allow_html=True)
     
 
@@ -345,35 +388,45 @@ def display_movies(rec_movies):
             with columns[i]:
                 display_movie_details(movie)
 
-# Add watch list and imdb link
+# Function to display movie details including Add to Watchlist button and IMDb link
 def display_movie_details(movie):
     movie_id = movie['movieId']
     movie_name = movie['title']
     poster_url = movie.get('imageURL', '')
-    imdb_link = movie['imdbUrl']  # Ensure the 'imdbUrl' column exists in your DataFrame
+    imdb_link = movie['imdbUrl']  
     
     with st.container():
         if poster_url:
-            st.image(poster_url, width=180)
+            st.image(poster_url, width=180, caption=movie_name)
         
         if st.button(f"⭐ Add to Watchlist", key=f"add_{movie_id}"):
-            if movie_name not in st.session_state['my_watchlist']:
-                updated_watchlist = st.session_state['my_watchlist'] + [movie_name] # Store movie ID
-                st.session_state['my_watchlist'] = updated_watchlist
-                update_watchlist_area()  # Refresh the watchlist display
-                
-        # IMDb link
+            movie_info = {"title": movie_name, "imdbUrl": imdb_link}
+            # Check if movie already in watchlist to prevent duplicates
+            if movie_info not in st.session_state['my_watchlist']:
+                st.session_state['my_watchlist'].append(movie_info)  # Add movie info to watchlist
+                st.success(f"'{movie_name}' added to watchlist!")
+            else:
+                st.error(f"'{movie_name}' is already in the watchlist.")
+            
+            # Update the sidebar watchlist display
+            update_watchlist_area()
+        
+        # Display the IMDb link
         st.markdown(f"[{movie_name}]({imdb_link})", unsafe_allow_html=True)
 
-
-
-
-# Update the watchlist
+# Function to update and display the watchlist in the sidebar
 def update_watchlist_area():
-    watchlist_area.empty()  # Clear previous content
-    watchlist_area.markdown("### My Watchlist")
-    watchlist_content = "\n".join(f"{idx}. {movie}" for idx, movie in enumerate(st.session_state['my_watchlist'], 1))
-    watchlist_area.markdown(watchlist_content)
+    # Empty previous content in the sidebar area dedicated for the watchlist
+    watchlist_area = st.sidebar.container()
+    if st.session_state['my_watchlist']:
+        # Display each movie as a clickable link to its IMDb page
+        for movie_info in st.session_state['my_watchlist']:
+            watchlist_area.markdown(f"[{movie_info['title']}]({movie_info['imdbUrl']})", unsafe_allow_html=True)
+    else:
+        watchlist_area.write("Your watchlist is currently empty.")
+
+
+
 
 #Debug  
 #watchlist_area.write(st.session_state['my_watchlist'])
@@ -422,9 +475,3 @@ if not rec_movies.empty:
     st.write("<span style='color: #660000;font-size: 18px;'><b>Here is your personalized movie list! 🎉🎉</b></span>", unsafe_allow_html=True)
     display_movies(rec_movies)
 
-#else:
-    #st.write("No recommendations available.")
-
-#else:
-    #st.markdown("<p style='color:#FFBF00; font-size: 18px;'><b>Sorry, we couldn't find any recommendations for you.</b></p>",
-               #unsafe_allow_html=True)
